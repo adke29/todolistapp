@@ -3,37 +3,38 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const _ = require("lodash");
 const date = require(__dirname +"/date.js");
 
 const app = express();
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(express.static(__dirname+"/public"))
 
-
 mongoose.connect("mongodb://127.0.0.1:27017/todolistDB");
-const listsSChema = new mongoose.Schema({
-    item:String
+
+const itemsSchema = new mongoose.Schema({
+    itemName: String
+})
+
+const listsSchema = new mongoose.Schema({
+    listName :String,
+    items:[itemsSchema]
 });
 
-const Items = mongoose.model("defaults",listsSChema);
+const Items = mongoose.model("defaults",itemsSchema);
+const Lists = mongoose.model("customs",listsSchema);
 
 
-const firstItem = new Items({item: "This is a default"});
-const secondItem = new Items({item: "list"}); 
-const thirdItem = new Items({item: "for you"});
-
+//Starts here
 
 app.get("/", async function (req, res) {  
     var lists = [];
     await Items.find({}).then(function(items){
         lists = items;
     })
-    let day = date.getDay();
     res.render("list", {
-        kindOfDay: day,
+        listName: "Home",
         myLists: lists
     });
 
@@ -44,19 +45,68 @@ app.get("/", async function (req, res) {
 
 app.post("/",function(req,res){
     let input = req.body.newInput;
+    const urlListName = _.lowerCase(req.body.button);
     const newItem = new Items({
-        item: input
+        itemName: input
     })
-    newItem.save();
-    res.redirect("/");
+    if(urlListName === "home"){
+        newItem.save();
+        res.redirect("/");
+    }else{
+        Lists.findOne({listName:urlListName}).then(function(data){
+            data.items.push(newItem);
+            data.save();
+            res.redirect("/custom/" +_.capitalize(urlListName));
+        })
+        
+    }
+    
 });
+
+app.get("/custom/:listName",function(req,res){
+    var urlListName = _.lowerCase(req.params.listName);
+    Lists.findOne({listName:urlListName}).then(function(data){
+        if(!data){
+            const newList = new Lists({
+                listName: urlListName,
+                items:[]
+            })
+            newList.save();
+            res.render("list",{
+                listName:_.capitalize(urlListName),
+                myLists:[]
+                })
+        }else{
+            res.render("list",{
+                listName:_.capitalize(urlListName),
+                myLists:data.items
+            })
+        
+        }})
+    
+    
+
+})
+
+
+
+
+
+
+
 
 app.post("/delete",async function(req,res){
     const target = req.body.checkbox;
-    console.log(target);
-    await Items.findByIdAndDelete(target)
+    const urlListName = _.lowerCase(req.body.listName);
+    if(urlListName === "home"){
+        await Items.findByIdAndDelete(target)
+        res.redirect("/");
+    }else{
+        await Lists.findOneAndUpdate({listName:urlListName},{$pull:{items:{_id:target}}})
+        res.redirect("/custom/"+_.capitalize(urlListName));
+    }
 
-    res.redirect("/");
+    
 });
 
 

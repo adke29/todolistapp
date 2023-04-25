@@ -2,7 +2,7 @@
 
 <body>
     <div class="box" id="heading">
-        <h1> <%=kindOfDay%> </h1>
+        <h1> <%=listName%> </h1>
     </div>
 
     <div class="box">
@@ -11,16 +11,17 @@
         <%myLists.forEach(function(items){%>
             <div class="item">
                 <input type="checkbox" name="checkbox" onChange="this.form.submit()" value = <%=items._id%>>
-                <p><%=items.item%></p>
+                <p><%=items.itemName%></p>
             </div>
         <%})%>
+            <input type="hidden" name="listName" value = "<%=listName%>">
         </form>
         
     
 
         <form action="/" method="post" class = "item">
             <input type="text" name="newInput" id="newInput" placeholder="New item" autofocus>
-            <button type="submit" name="button">+</button>
+            <button type="submit" name="button" value=<%=listName%>>+</button>
         </form>
     </div>
 
