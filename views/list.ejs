@@ -1,0 +1,27 @@
+<%- include("header") -%>
+
+<body>
+    <div class="box" id="heading">
+        <h1> <%=kindOfDay%> </h1>
+    </div>
+
+    <div class="box">
+
+        <form action="/delete" method="post">
+        <%myLists.forEach(function(items){%>
+            <div class="item">
+                <input type="checkbox" name="checkbox" onChange="this.form.submit()" value = <%=items._id%>>
+                <p><%=items.item%></p>
+            </div>
+        <%})%>
+        </form>
+        
+    
+
+        <form action="/" method="post" class = "item">
+            <input type="text" name="newInput" id="newInput" placeholder="New item" autofocus>
+            <button type="submit" name="button">+</button>
+        </form>
+    </div>
+
+<%-include("footer")-%>
