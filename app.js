@@ -5,13 +5,14 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
 const date = require(__dirname +"/date.js");
+require('dotenv').config();
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(express.static(__dirname+"/public"))
 
-mongoose.connect("mongodb+srv://admin-kevin:Test123456@cluster0.6ehnxuj.mongodb.net/todolistDB");
+mongoose.connect(process.env.DATABASE_URI);
 
 const itemsSchema = new mongoose.Schema({
     itemName: String
